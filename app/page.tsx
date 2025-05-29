@@ -144,11 +144,17 @@ export default function JavaScriptLearningPage() {
       };
 
       // Executa o código
-      eval(code);
+      const result = eval(code);
 
       // Restaura console.log
       console.log = originalLog;
 
+      // Se não houver logs mas houver um resultado, adiciona o resultado
+      if (logs.length === 0 && result !== undefined) {
+        logs.push(String(result));
+      }
+
+      // Adiciona os resultados ao output
       setConsoleOutput((prev) => [...prev, ...logs]);
     } catch (error) {
       setConsoleOutput((prev) => [...prev, `Erro: ${error}`]);
@@ -158,14 +164,13 @@ export default function JavaScriptLearningPage() {
   const handleConsoleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (consoleInput.trim()) {
-      setConsoleOutput((prev) => [...prev, `> ${consoleInput}`]);
       executeCode(consoleInput);
-      setConsoleInput("");
     }
   };
 
   const clearConsole = () => {
     setConsoleOutput([]);
+    setConsoleInput("");
   };
 
   const calculateProgress = () => {
@@ -1150,54 +1155,110 @@ export default function JavaScriptLearningPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-black dark:bg-gray-950 rounded-lg p-4 h-64 overflow-y-auto font-mono text-sm">
-                  <div className="text-green-400 mb-2">
-                    JavaScript Console v1.0
-                  </div>
-                  {consoleOutput.map((output, index) => (
-                    <div key={index} className="text-gray-300 mb-1">
-                      {output}
-                    </div>
-                  ))}
-                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Editor */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-medium text-gray-300">
+                        Código
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs border-gray-600 text-gray-300 hover:bg-gray-700"
+                        onClick={() => {
+                          const code = `// Seu código aqui
+console.log("Olá, mundo!");
 
-                <form onSubmit={handleConsoleSubmit} className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400">
-                      {">"}
-                    </span>
-                    <input
-                      type="text"
+// Exemplo de função
+function somar(a, b) {
+  return a + b;
+}
+
+// Teste a função
+console.log(somar(5, 3));`;
+                          setConsoleInput(code);
+                        }}
+                      >
+                        Exemplo
+                      </Button>
+                    </div>
+                    <textarea
                       value={consoleInput}
                       onChange={(e) => setConsoleInput(e.target.value)}
+                      className="w-full h-64 bg-gray-800 dark:bg-gray-900 border border-gray-600 dark:border-gray-700 rounded-lg p-4 text-green-400 font-mono text-sm focus:outline-none focus:border-green-400"
                       placeholder="Digite seu código JavaScript aqui..."
-                      className="w-full pl-8 pr-4 py-2 bg-gray-800 dark:bg-gray-900 border border-gray-600 dark:border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-400"
                     />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          if (consoleInput.trim()) {
+                            executeCode(consoleInput);
+                          }
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        Executar
+                      </Button>
+                      <Button
+                        onClick={clearConsole}
+                        variant="outline"
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        Limpar
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    type="submit"
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Executar
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={clearConsole}
-                    variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                  >
-                    Limpar
-                  </Button>
-                </form>
 
-                <div className="text-sm text-gray-400">
-                  <p>
-                    <strong>Dicas:</strong>
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 mt-2">
-                    <li>Use console.log() para exibir resultados</li>
-                    <li>Teste variáveis, funções e operadores</li>
-                    <li>Experimente com os exemplos das seções acima</li>
+                  {/* Output */}
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-gray-300">
+                      Resultado
+                    </h3>
+                    <div className="w-full h-64 bg-black dark:bg-gray-950 rounded-lg p-4 overflow-y-auto font-mono text-sm">
+                      <div className="text-green-400 mb-2">
+                        JavaScript Console v1.0
+                      </div>
+                      {consoleOutput.length === 0 ? (
+                        <div className="text-gray-500">
+                          Nenhum resultado ainda...
+                        </div>
+                      ) : (
+                        consoleOutput.map((output, index) => (
+                          <div
+                            key={index}
+                            className={`mb-1 ${
+                              output.startsWith(">")
+                                ? "text-blue-400"
+                                : output.startsWith("Erro:")
+                                ? "text-red-400"
+                                : "text-gray-300"
+                            }`}
+                          >
+                            {output.startsWith(">") ? (
+                              <>
+                                <span className="text-gray-500">$ </span>
+                                {output.substring(2)}
+                              </>
+                            ) : (
+                              output
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-4 bg-gray-800/50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-300 mb-2">
+                    Dicas:
+                  </h4>
+                  <ul className="text-sm text-gray-400 space-y-1">
+                    <li>• Use console.log() para exibir resultados</li>
+                    <li>• Teste funções, variáveis e operadores</li>
+                    <li>• Experimente com os exemplos das seções anteriores</li>
+                    <li>• O código é executado em um ambiente seguro</li>
                   </ul>
                 </div>
               </CardContent>
@@ -2032,86 +2093,86 @@ console.log(novaPessoa.apresentar());`,
               </Card>
             </div>
           </section>
-        </main>
 
-        {/* Footer */}
-        <footer className="border-t border-gray-200 dark:border-gray-700 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-8 mb-8">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Sobre
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  Um guia completo e interativo para aprender JavaScript, desde
-                  os conceitos básicos até técnicas avançadas.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Links
-                </h3>
-                <ul className="space-y-2">
-                  <li>
-                    <a
-                      href="https://padevs-html.netlify.app/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors flex items-center"
-                    >
-                      <ExternalLink className="mr-1 h-3 w-3" />
-                      HTML Semântico
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Contato
-                </h3>
-                <ul className="space-y-2">
-                  <li>
-                    <a
-                      href="https://github.com/pedroallas"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors flex items-center"
-                    >
-                      <ExternalLink className="mr-1 h-3 w-3" />
-                      GitHub
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://pedroallas.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors flex items-center"
-                    >
-                      <ExternalLink className="mr-1 h-3 w-3" />
-                      pedroallas.com
-                    </a>
-                  </li>
-                  <li className="text-gray-600 dark:text-gray-400 text-sm">
-                    CTO e Fundador da PADevs School
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
-              <div className="flex flex-col md:flex-row justify-between items-center">
-                <div className="text-center md:text-left mb-4 md:mb-0">
+          {/* Footer */}
+          <footer className="border-t border-gray-200 dark:border-gray-700 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 py-12">
+            <div className="container mx-auto px-4">
+              <div className="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Sobre
+                  </h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    © 2024 JavaScript Completo. Todos os direitos reservados.
+                    Um guia completo e interativo para aprender JavaScript,
+                    desde os conceitos básicos até técnicas avançadas.
                   </p>
-                  <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
-                    Desenvolvido por Pedro Allas dos Santos Borges
-                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Links
+                  </h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <a
+                        href="https://padevs-html.netlify.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors flex items-center"
+                      >
+                        <ExternalLink className="mr-1 h-3 w-3" />
+                        HTML Semântico
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Contato
+                  </h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <a
+                        href="https://github.com/pedroallas"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors flex items-center"
+                      >
+                        <ExternalLink className="mr-1 h-3 w-3" />
+                        GitHub
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://pedroallas.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors flex items-center"
+                      >
+                        <ExternalLink className="mr-1 h-3 w-3" />
+                        pedroallas.com
+                      </a>
+                    </li>
+                    <li className="text-gray-600 dark:text-gray-400 text-sm">
+                      CTO e Fundador da PADevs School
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+                <div className="flex flex-col md:flex-row justify-between items-center">
+                  <div className="text-center md:text-left mb-4 md:mb-0">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      © 2024 JavaScript Completo. Todos os direitos reservados.
+                    </p>
+                    <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
+                      Desenvolvido por Pedro Allas dos Santos Borges
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </footer>
+          </footer>
+        </main>
       </div>
     </div>
   );
